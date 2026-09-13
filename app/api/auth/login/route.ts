@@ -17,20 +17,21 @@ export async function POST(request: NextRequest) {
   const { scope, username, password } = parsed.data;
 
   let ok: boolean;
+  let token: string;
   try {
     ok = await verifyCredentials(scope, username, password);
-  } catch {
+    if (!ok) {
+      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+    }
+    token = await createSessionToken(scope);
+  } catch (err) {
+    console.error("Auth configuration error:", err);
     return NextResponse.json(
-      { error: "Server is missing auth configuration" },
+      { error: "Server is missing auth configuration (check SESSION_SECRET and *_AUTH_* env vars)" },
       { status: 500 }
     );
   }
 
-  if (!ok) {
-    return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
-  }
-
-  const token = await createSessionToken(scope);
   const response = NextResponse.json({ ok: true });
   response.cookies.set(cookieNameFor(scope), token, {
     httpOnly: true,

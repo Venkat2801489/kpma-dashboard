@@ -31,7 +31,8 @@ export function LoginForm({
     });
     setLoading(false);
     if (!res.ok) {
-      setError("Invalid username or password.");
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Invalid username or password.");
       return;
     }
     router.push(redirectTo);
