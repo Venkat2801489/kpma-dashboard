@@ -19,6 +19,7 @@ export default function WorkersPage() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [addOpen, setAddOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/workers?${selectionToQuery(selection)}`);
@@ -26,9 +27,16 @@ export default function WorkersPage() {
       router.push("/workers/login");
       return;
     }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? `Failed to load workers (${res.status}).`);
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
     setPeriod(data.period);
     setWorkers(data.workers);
+    setError(null);
     setLoading(false);
   }, [selection, router]);
 
@@ -46,7 +54,12 @@ export default function WorkersPage() {
       </TopBar>
 
       <main className="mx-auto max-w-4xl px-4 py-6">
-        {loading || !period || !stats ? (
+        {error ? (
+          <div className="rounded-xl border border-unpaid/40 bg-unpaid-bg p-4 text-sm text-unpaid">
+            <p className="font-medium">Couldn&rsquo;t load the payroll dashboard.</p>
+            <p className="mt-1">{error}</p>
+          </div>
+        ) : loading || !period || !stats ? (
           <p className="text-sm text-text-muted">Loading…</p>
         ) : (
           <>

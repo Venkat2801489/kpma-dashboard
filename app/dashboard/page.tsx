@@ -28,6 +28,7 @@ export default function DashboardPage() {
     { name: string; expected: number; collected: number }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadClients = useCallback(async () => {
     const res = await fetch(`/api/clients?${selectionToQuery(selection)}`);
@@ -35,9 +36,16 @@ export default function DashboardPage() {
       router.push("/login");
       return;
     }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? `Failed to load clients (${res.status}).`);
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
     setPeriod(data.period);
     setClients(data.clients);
+    setError(null);
     setLoading(false);
   }, [selection, router]);
 
@@ -85,7 +93,12 @@ export default function DashboardPage() {
       </TopBar>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        {loading || !period || !stats ? (
+        {error ? (
+          <div className="rounded-xl border border-unpaid/40 bg-unpaid-bg p-4 text-sm text-unpaid">
+            <p className="font-medium">Couldn&rsquo;t load the dashboard.</p>
+            <p className="mt-1">{error}</p>
+          </div>
+        ) : loading || !period || !stats ? (
           <p className="text-sm text-text-muted">Loading…</p>
         ) : (
           <>
