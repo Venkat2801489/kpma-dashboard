@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #fbfbfb;
+  --color-surface-hover: #f2f2f2;
+  --color-border: #e5e5e5;
+  --color-text: #0a0a0a;
+  --color-text-muted: #666666;
+  --color-text-faint: #999999;
+
+  --color-brand: #02afef;
+  --color-brand-fg: #ffffff;
+
+  --color-paid: #16a34a;
+  --color-paid-bg: #ecfdf3;
+  --color-partial: #d97706;
+  --color-partial-bg: #fffaeb;
+  --color-unpaid: #e8001e;
+  --color-unpaid-bg: #fef2f2;
+}
+
+.dark {
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-hover: #1e1e1e;
+  --color-border: #2a2a2a;
+  --color-text: #f2f2f2;
+  --color-text-muted: #999999;
+  --color-text-faint: #666666;
+
+  --color-brand: #02afef;
+  --color-brand-fg: #0a0a0a;
+
+  --color-paid: #22c55e;
+  --color-paid-bg: #0f2417;
+  --color-partial: #f59e0b;
+  --color-partial-bg: #271d0a;
+  --color-unpaid: #f8434f;
+  --color-unpaid-bg: #2a0f10;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-faint: var(--color-text-faint);
+  --color-brand: var(--color-brand);
+  --color-brand-fg: var(--color-brand-fg);
+  --color-paid: var(--color-paid);
+  --color-paid-bg: var(--color-paid-bg);
+  --color-partial: var(--color-partial);
+  --color-partial-bg: var(--color-partial-bg);
+  --color-unpaid: var(--color-unpaid);
+  --color-unpaid-bg: var(--color-unpaid-bg);
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
