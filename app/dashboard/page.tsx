@@ -3,16 +3,17 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { TopBar } from "@/components/top-bar";
 import { MonthPicker, selectionToQuery, type PeriodSelection } from "@/components/month-picker";
-import { StatsRow } from "@/components/stats-row";
+import { ClientStatsRow } from "@/components/client-stats-row";
 import { CategoryChips } from "@/components/category-chips";
 import { ClientList } from "@/components/client-list";
 import { AddClientModal } from "@/components/add-client-modal";
-import { RevenueTrendChart, CategoryBreakdownChart } from "@/components/revenue-chart";
-import { computeStats } from "@/lib/aggregate";
+import { DashboardSkeleton } from "@/components/dashboard-skeleton";
+import { aggregateClient, computeStats } from "@/lib/aggregate";
 import { currentYearMonth } from "@/lib/period";
-import type { Category, Client, Period } from "@/lib/types";
+import type { Category, Client, Period, PaymentStatus } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,11 +23,8 @@ export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<PaymentStatus | null>(null);
   const [addOpen, setAddOpen] = useState(false);
-  const [trend, setTrend] = useState<{ label: string; expected: number; collected: number }[]>([]);
-  const [categoryBreakdown, setCategoryBreakdown] = useState<
-    { name: string; expected: number; collected: number }[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,15 +52,6 @@ export default function DashboardPage() {
     if (res.ok) setCategories(await res.json());
   }, []);
 
-  const loadStats = useCallback(async () => {
-    const res = await fetch("/api/stats");
-    if (res.ok) {
-      const data = await res.json();
-      setTrend(data.trend);
-      setCategoryBreakdown(data.categories);
-    }
-  }, []);
-
   useEffect(() => {
     // Intentional data fetch on mount / period change — no cache layer in this app.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -72,18 +61,27 @@ export default function DashboardPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional fetch on mount
     loadCategories();
-    loadStats();
-  }, [loadCategories, loadStats]);
+  }, [loadCategories]);
 
-  const visibleClients = selectedCategory
+  const categoryFiltered = selectedCategory
     ? clients.filter((c) => c.categories.some((cc) => cc.categoryId === selectedCategory))
     : clients;
 
-  const stats = period ? computeStats(visibleClients, period) : null;
+  const stats = period ? computeStats(categoryFiltered, period) : null;
+
+  const clientTotals = period
+    ? categoryFiltered.map((client) => ({ client, totals: aggregateClient(client, period) }))
+    : [];
+  const paidCount = clientTotals.filter((c) => c.totals.status === "PAID").length;
+  const partialCount = clientTotals.filter((c) => c.totals.status === "PARTIAL").length;
+  const unpaidCount = clientTotals.filter((c) => c.totals.status === "UNPAID").length;
+
+  const visibleClients = statusFilter
+    ? clientTotals.filter((c) => c.totals.status === statusFilter).map((c) => c.client)
+    : categoryFiltered;
 
   function handleChanged() {
     loadClients();
-    loadStats();
   }
 
   return (
@@ -99,9 +97,9 @@ export default function DashboardPage() {
             <p className="mt-1">{error}</p>
           </div>
         ) : loading || !period || !stats ? (
-          <p className="text-sm text-text-muted">Loading…</p>
+          <DashboardSkeleton />
         ) : (
-          <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
             <div className="mb-2 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-text">{period.label}</h1>
               <div className="flex gap-2">
@@ -122,30 +120,25 @@ export default function DashboardPage() {
             </div>
 
             <div className="mb-6">
-              <StatsRow
+              <ClientStatsRow
                 totalExpected={stats.totalExpected}
                 totalCollected={stats.totalCollected}
                 totalPending={stats.totalPending}
-                paidCount={stats.paidCount}
-                unpaidCount={stats.unpaidCount}
-                partialCount={stats.partialCount}
-                collectionRate={stats.collectionRate}
+                totalClients={categoryFiltered.length}
+                paidCount={paidCount}
+                unpaidCount={unpaidCount}
+                partialCount={partialCount}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
               />
             </div>
-
-            {(trend.length > 0 || categoryBreakdown.length > 0) && (
-              <div className="mb-6 grid gap-4 sm:grid-cols-2">
-                <RevenueTrendChart data={trend} />
-                <CategoryBreakdownChart data={categoryBreakdown} />
-              </div>
-            )}
 
             <div className="mb-4">
               <CategoryChips categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
             </div>
 
             <ClientList clients={visibleClients} categories={categories} period={period} onChanged={handleChanged} />
-          </>
+          </motion.div>
         )}
       </main>
 

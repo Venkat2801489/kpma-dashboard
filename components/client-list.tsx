@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { LogoImage } from "./logo-image";
 import { StatusPill } from "./status-pill";
 import { PaymentEditor } from "./payment-editor";
@@ -76,21 +77,35 @@ export function ClientList({
         </p>
       )}
 
-      <div className="space-y-3">
-        {rows.map(({ client, totals }) => {
-          return (
-            <div key={client.id} className="rounded-xl border border-border bg-surface p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <LogoImage name={client.name} src={client.logoUrl} />
-                  <div>
-                    <div className="font-medium text-text">{client.name}</div>
-                    <div className="text-xs text-text-muted">
-                      {formatINR(totals.collected)} of {formatINR(totals.expected)} collected
+      <motion.div layout className="space-y-3">
+        <AnimatePresence initial={false}>
+          {rows.map(({ client, totals }) => {
+            return (
+              <motion.div
+                key={client.id}
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="rounded-xl border border-border bg-surface p-4 transition-shadow hover:shadow-sm"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <LogoImage name={client.name} src={client.logoUrl} />
+                    <div className="min-w-0 truncate font-medium text-text">{client.name}</div>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-3 sm:justify-end">
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-text">{formatINR(totals.collected)}</div>
+                      <div className="text-xs text-text-muted">of {formatINR(totals.expected)}</div>
                     </div>
+                    <StatusPill status={totals.status} />
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
                   {client.categories.map((cc) => {
                     const line = aggregateClientCategory(cc, period);
                     const payment = cc.payments.find(
@@ -126,11 +141,11 @@ export function ClientList({
                     + service
                   </button>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </motion.div>
 
       {editing && (
         <PaymentEditor

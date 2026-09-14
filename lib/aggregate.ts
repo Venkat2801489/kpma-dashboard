@@ -46,14 +46,28 @@ export type ClientTotals = {
   expected: number;
   collected: number;
   pending: number;
+  status: PaymentStatus;
   lines: { clientCategory: ClientCategory; line: LineStatus }[];
 };
+
+/**
+ * Rolls per-service statuses up into one client-level status: paid only if
+ * every service is paid, unpaid only if every service is unpaid, partial
+ * otherwise (including clients with no services, so they don't read as paid).
+ */
+function rollUpStatus(lines: LineStatus[]): PaymentStatus {
+  if (lines.length === 0) return "UNPAID";
+  if (lines.every((l) => l.status === "PAID")) return "PAID";
+  if (lines.every((l) => l.status === "UNPAID")) return "UNPAID";
+  return "PARTIAL";
+}
 
 export function aggregateClient(client: Client, period: Period): ClientTotals {
   const lines = client.categories.map((cc) => ({ clientCategory: cc, line: aggregateClientCategory(cc, period) }));
   const expected = lines.reduce((sum, l) => sum + l.line.expected, 0);
   const collected = lines.reduce((sum, l) => sum + l.line.collected, 0);
-  return { expected, collected, pending: expected - collected, lines };
+  const status = rollUpStatus(lines.map((l) => l.line));
+  return { expected, collected, pending: expected - collected, status, lines };
 }
 
 export function aggregateWorker(worker: Worker, period: Period): LineStatus {
