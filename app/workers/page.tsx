@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { TopBar } from "@/components/top-bar";
 import { MonthPicker, selectionToQuery, type PeriodSelection } from "@/components/month-picker";
-import { StatsRow } from "@/components/stats-row";
+import { WorkerStatsRow } from "@/components/worker-stats-row";
 import { WorkerList } from "@/components/worker-list";
 import { AddWorkerModal } from "@/components/add-worker-modal";
-import { computePayrollStats } from "@/lib/aggregate";
+import { DashboardSkeleton } from "@/components/dashboard-skeleton";
+import { aggregateWorker, computePayrollStats } from "@/lib/aggregate";
 import { currentYearMonth } from "@/lib/period";
-import type { Period, Worker } from "@/lib/types";
+import type { Period, PaymentStatus, Worker } from "@/lib/types";
 
 export default function WorkersPage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function WorkersPage() {
   const [selection, setSelection] = useState<PeriodSelection>({ mode: "month", year: now.year, month: now.month });
   const [period, setPeriod] = useState<Period | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [statusFilter, setStatusFilter] = useState<PaymentStatus | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +50,15 @@ export default function WorkersPage() {
 
   const stats = period ? computePayrollStats(workers, period) : null;
 
+  const workerLines = period ? workers.map((worker) => ({ worker, line: aggregateWorker(worker, period) })) : [];
+  const paidCount = workerLines.filter((w) => w.line.status === "PAID").length;
+  const partialCount = workerLines.filter((w) => w.line.status === "PARTIAL").length;
+  const unpaidCount = workerLines.filter((w) => w.line.status === "UNPAID").length;
+
+  const visibleWorkers = statusFilter
+    ? workerLines.filter((w) => w.line.status === statusFilter).map((w) => w.worker)
+    : workers;
+
   return (
     <div className="min-h-screen">
       <TopBar scope="worker" subtitle="Worker payroll dashboard" workerLink={false}>
@@ -60,9 +72,9 @@ export default function WorkersPage() {
             <p className="mt-1">{error}</p>
           </div>
         ) : loading || !period || !stats ? (
-          <p className="text-sm text-text-muted">Loading…</p>
+          <DashboardSkeleton showCategoryChips={false} />
         ) : (
-          <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
             <div className="mb-4 flex items-center justify-between">
               <h1 className="text-lg font-semibold text-text">{period.label}</h1>
               <button
@@ -75,19 +87,21 @@ export default function WorkersPage() {
             </div>
 
             <div className="mb-6">
-              <StatsRow
+              <WorkerStatsRow
                 totalExpected={stats.totalExpected}
                 totalCollected={stats.totalCollected}
                 totalPending={stats.totalPending}
-                paidCount={stats.paidCount}
-                unpaidCount={stats.unpaidCount}
-                partialCount={stats.partialCount}
-                collectionRate={stats.collectionRate}
+                totalWorkers={workers.length}
+                paidCount={paidCount}
+                unpaidCount={unpaidCount}
+                partialCount={partialCount}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
               />
             </div>
 
-            <WorkerList workers={workers} period={period} onChanged={load} />
-          </>
+            <WorkerList workers={visibleWorkers} period={period} onChanged={load} />
+          </motion.div>
         )}
       </main>
 

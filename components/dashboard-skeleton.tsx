@@ -1,4 +1,4 @@
-export function DashboardSkeleton() {
+export function DashboardSkeleton({ showCategoryChips = true }: { showCategoryChips?: boolean }) {
   return (
     <div className="animate-pulse">
       <div className="mb-2 flex items-center justify-between">
@@ -17,11 +17,13 @@ export function DashboardSkeleton() {
         </div>
       </div>
 
-      <div className="mb-4 flex gap-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-8 w-24 rounded-full bg-surface-hover" />
-        ))}
-      </div>
+      {showCategoryChips && (
+        <div className="mb-4 flex gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-8 w-24 rounded-full bg-surface-hover" />
+          ))}
+        </div>
+      )}
 
       <div className="space-y-3">
         {Array.from({ length: 5 }).map((_, i) => (
