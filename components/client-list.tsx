@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogoImage } from "./logo-image";
 import { AddServiceModal } from "./add-service-modal";
+import { EditClientModal } from "./edit-client-modal";
 import { aggregateClient } from "@/lib/aggregate";
 import { formatINR } from "@/lib/currency";
 import type { Category, Client } from "@/lib/types";
@@ -25,7 +26,10 @@ export function ClientList({
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [addServiceFor, setAddServiceFor] = useState<Client | null>(null);
+  const [editClientId, setEditClientId] = useState<string | null>(null);
   const [savingClientId, setSavingClientId] = useState<string | null>(null);
+
+  const editClient = editClientId ? (clients.find((c) => c.id === editClientId) ?? null) : null;
 
   const singleMonth = period.months.length === 1;
 
@@ -113,7 +117,20 @@ export function ClientList({
                 <div className="flex items-center gap-3">
                   <LogoImage name={client.name} src={client.logoUrl} />
                   <div className="min-w-0 flex-1 truncate font-medium text-text">{client.name}</div>
-                  <div className="shrink-0 text-lg font-bold text-text">{formatINR(totals.expected)}</div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <div className="text-lg font-bold text-text">{formatINR(totals.expected)}</div>
+                    <button
+                      type="button"
+                      onClick={() => setEditClientId(client.id)}
+                      aria-label={`Edit ${client.name}`}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-faint transition-colors hover:bg-surface-hover hover:text-brand"
+                    >
+                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-3 flex items-center gap-1.5">
@@ -175,6 +192,10 @@ export function ClientList({
           )}
           onSaved={onChanged}
         />
+      )}
+
+      {editClient && (
+        <EditClientModal open onClose={() => setEditClientId(null)} client={editClient} onSaved={onChanged} />
       )}
     </div>
   );
