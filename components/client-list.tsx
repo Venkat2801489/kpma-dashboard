@@ -126,7 +126,7 @@ export function ClientList({
                             disabled={disabled}
                             title={!singleMonth ? "Switch to a single month to edit" : undefined}
                             onClick={() => setClientStatus(client, s)}
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                               active
                                 ? s === "PAID"
                                   ? "bg-paid-bg text-paid"
@@ -146,7 +146,7 @@ export function ClientList({
                   {client.categories.map((cc) => (
                     <span
                       key={cc.id}
-                      className="rounded-full border border-border px-2.5 py-1 text-xs text-text-muted"
+                      className="rounded-full border border-border px-2.5 py-1.5 text-xs text-text-muted"
                     >
                       {cc.category.name}
                     </span>
@@ -154,7 +154,7 @@ export function ClientList({
                   <button
                     type="button"
                     onClick={() => setAddServiceFor(client)}
-                    className="rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-text-faint hover:bg-surface-hover"
+                    className="rounded-full border border-dashed border-border px-2.5 py-1.5 text-xs text-text-faint hover:bg-surface-hover"
                   >
                     + service
                   </button>

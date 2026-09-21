@@ -26,13 +26,13 @@ export function MonthPicker({
   const monthValue = value.mode === "month" ? value : { year: now.getFullYear(), month: now.getMonth() + 1 };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex w-full flex-wrap items-center gap-2">
       {!customOpen && (
         <>
           <select
             value={monthValue.month}
             onChange={(e) => onChange({ mode: "month", year: monthValue.year, month: Number(e.target.value) })}
-            className="rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text outline-none focus:border-brand"
+            className="flex-1 basis-28 rounded-lg border border-border bg-bg px-2 py-2 text-sm text-text outline-none focus:border-brand sm:flex-none sm:py-1.5"
           >
             {MONTH_NAMES.map((name, i) => (
               <option key={name} value={i + 1}>
@@ -43,7 +43,7 @@ export function MonthPicker({
           <select
             value={monthValue.year}
             onChange={(e) => onChange({ mode: "month", year: Number(e.target.value), month: monthValue.month })}
-            className="rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text outline-none focus:border-brand"
+            className="flex-1 basis-20 rounded-lg border border-border bg-bg px-2 py-2 text-sm text-text outline-none focus:border-brand sm:flex-none sm:py-1.5"
           >
             {years.map((y) => (
               <option key={y} value={y}>
@@ -64,7 +64,7 @@ export function MonthPicker({
               const end = value.mode === "range" ? value.end : start;
               onChange({ mode: "range", start, end });
             }}
-            className="rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text outline-none focus:border-brand"
+            className="min-w-0 flex-1 basis-32 rounded-lg border border-border bg-bg px-2 py-2 text-sm text-text outline-none focus:border-brand sm:flex-none sm:py-1.5"
           />
           <span className="text-text-muted">to</span>
           <input
@@ -75,7 +75,7 @@ export function MonthPicker({
               const start = value.mode === "range" ? value.start : end;
               onChange({ mode: "range", start, end });
             }}
-            className="rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text outline-none focus:border-brand"
+            className="min-w-0 flex-1 basis-32 rounded-lg border border-border bg-bg px-2 py-2 text-sm text-text outline-none focus:border-brand sm:flex-none sm:py-1.5"
           />
         </>
       )}
@@ -92,7 +92,7 @@ export function MonthPicker({
             onChange({ mode: "range", start: ym, end: ym });
           }
         }}
-        className="rounded-lg border border-border px-2 py-1.5 text-xs text-text-muted hover:bg-surface-hover"
+        className="w-full shrink-0 rounded-lg border border-border px-2 py-2 text-xs text-text-muted hover:bg-surface-hover sm:w-auto sm:py-1.5"
       >
         {customOpen ? "Use single month" : "Custom range"}
       </button>
