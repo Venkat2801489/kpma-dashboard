@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { CategoryIcon } from "./category-icon";
 import type { Category } from "@/lib/types";
 
@@ -40,12 +41,21 @@ export function BottomNav({
         <button
           type="button"
           onClick={() => onSelect(null)}
-          className={`flex min-w-[64px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors ${
-            selected === null ? "bg-brand/10 text-brand" : "text-text-muted hover:bg-surface-hover"
+          className={`relative flex min-w-[64px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors ${
+            selected === null ? "text-brand-fg" : "text-text-muted hover:bg-surface-hover"
           }`}
         >
-          <HomeIcon />
-          Home
+          {selected === null && (
+            <motion.span
+              layoutId="bottom-nav-active"
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              className="bg-gradient-brand absolute inset-0 rounded-xl"
+            />
+          )}
+          <span className="relative flex flex-col items-center gap-0.5">
+            <HomeIcon />
+            Home
+          </span>
         </button>
         {categories.map((cat) => {
           const active = selected === cat.id;
@@ -54,12 +64,21 @@ export function BottomNav({
               key={cat.id}
               type="button"
               onClick={() => onSelect(active ? null : cat.id)}
-              className={`flex min-w-[64px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors ${
-                active ? "bg-brand/10 text-brand" : "text-text-muted hover:bg-surface-hover"
+              className={`relative flex min-w-[64px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors ${
+                active ? "text-brand-fg" : "text-text-muted hover:bg-surface-hover"
               }`}
             >
-              <CategoryIcon icon={cat.icon} />
-              <span className="max-w-[76px] truncate">{cat.name}</span>
+              {active && (
+                <motion.span
+                  layoutId="bottom-nav-active"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  className="bg-gradient-brand absolute inset-0 rounded-xl"
+                />
+              )}
+              <span className="relative flex flex-col items-center gap-0.5">
+                <CategoryIcon icon={cat.icon} />
+                <span className="max-w-[76px] truncate">{cat.name}</span>
+              </span>
             </button>
           );
         })}

@@ -3,43 +3,51 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --color-bg: #ffffff;
-  --color-surface: #fbfbfb;
-  --color-surface-hover: #f2f2f2;
-  --color-border: #e5e5e5;
-  --color-text: #0a0a0a;
-  --color-text-muted: #666666;
-  --color-text-faint: #999999;
+  --color-bg: #f4f7fd;
+  --color-surface: #ffffff;
+  --color-surface-hover: #eaf1fb;
+  --color-border: #dbe5f5;
+  --color-text: #0a1020;
+  --color-text-muted: #56617a;
+  --color-text-faint: #8b96ae;
 
-  --color-brand: #02afef;
+  --color-brand: #1554e0;
+  --color-brand-2: #02afef;
+  --color-brand-ink: #071847;
   --color-brand-fg: #ffffff;
+  --gradient-brand: linear-gradient(135deg, #071847 0%, #1554e0 55%, #02afef 100%);
+  --shadow-brand: 0 12px 24px -10px rgb(21 84 224 / 0.45);
 
-  --color-paid: #16a34a;
-  --color-paid-bg: #ecfdf3;
+  --color-paid: #0f9d58;
+  --color-paid-bg: #e8f7ef;
   --color-partial: #d97706;
   --color-partial-bg: #fffaeb;
-  --color-unpaid: #e8001e;
-  --color-unpaid-bg: #fef2f2;
+  --color-unpaid: #dc2626;
+  --color-unpaid-bg: #fdecec;
 }
 
 .dark {
-  --color-bg: #0a0a0a;
-  --color-surface: #141414;
-  --color-surface-hover: #1e1e1e;
-  --color-border: #2a2a2a;
-  --color-text: #f2f2f2;
-  --color-text-muted: #999999;
-  --color-text-faint: #666666;
+  --color-bg: #05070f;
+  --color-surface: #0c1222;
+  --color-surface-hover: #141c33;
+  --color-border: #1d2a48;
+  --color-text: #eef2ff;
+  --color-text-muted: #8d9ab8;
+  --color-text-faint: #5b6684;
 
-  --color-brand: #02afef;
-  --color-brand-fg: #0a0a0a;
+  --color-brand: #4f8bff;
+  --color-brand-2: #02afef;
+  --color-brand-ink: #071847;
+  --color-brand-fg: #051029;
+  --gradient-brand: linear-gradient(135deg, #0a1636 0%, #1a4fd6 55%, #02afef 100%);
+  --shadow-brand: 0 12px 28px -8px rgb(2 175 239 / 0.35);
 
-  --color-paid: #22c55e;
-  --color-paid-bg: #0f2417;
+  --color-paid: #34d399;
+  --color-paid-bg: #0d2a1e;
   --color-partial: #f59e0b;
-  --color-partial-bg: #271d0a;
-  --color-unpaid: #f8434f;
-  --color-unpaid-bg: #2a0f10;
+  --color-partial-bg: #2a1d09;
+  --color-unpaid: #f87171;
+  --color-unpaid-bg: #301012;
 }
 
 @theme inline {
@@ -51,6 +59,8 @@
   --color-text-muted: var(--color-text-muted);
   --color-text-faint: var(--color-text-faint);
   --color-brand: var(--color-brand);
+  --color-brand-2: var(--color-brand-2);
+  --color-brand-ink: var(--color-brand-ink);
   --color-brand-fg: var(--color-brand-fg);
   --color-paid: var(--color-paid);
   --color-paid-bg: var(--color-paid-bg);
@@ -64,6 +74,10 @@
 body {
   background: var(--color-bg);
   color: var(--color-text);
+}
+
+.bg-gradient-brand {
+  background-image: var(--gradient-brand);
 }
 
 .bg-grid {

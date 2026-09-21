@@ -96,6 +96,7 @@ export function ClientList({
       <motion.div layout className="space-y-3">
         <AnimatePresence initial={false}>
           {rows.map(({ client, totals }) => {
+            const isPaid = totals.status === "PAID";
             return (
               <motion.div
                 key={client.id}
@@ -103,8 +104,11 @@ export function ClientList({
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
+                whileTap={{ scale: 0.99 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="rounded-xl border border-border bg-surface p-4 transition-shadow hover:shadow-sm"
+                className={`overflow-hidden rounded-xl border border-border bg-surface p-4 pl-3.5 shadow-sm transition-shadow hover:shadow-md ${
+                  isPaid ? "border-l-4 border-l-paid" : "border-l-4 border-l-unpaid"
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <LogoImage name={client.name} src={client.logoUrl} />
@@ -123,11 +127,11 @@ export function ClientList({
                         disabled={disabled}
                         title={!singleMonth ? "Switch to a single month to edit" : undefined}
                         onClick={() => setClientStatus(client, s)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
                           active
                             ? s === "PAID"
-                              ? "bg-paid-bg text-paid"
-                              : "bg-unpaid-bg text-unpaid"
+                              ? "bg-paid-bg text-paid ring-1 ring-inset ring-paid/30"
+                              : "bg-unpaid-bg text-unpaid ring-1 ring-inset ring-unpaid/30"
                             : "border border-border text-text-muted hover:bg-surface-hover"
                         } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
                       >
