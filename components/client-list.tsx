@@ -106,40 +106,35 @@ export function ClientList({
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className="rounded-xl border border-border bg-surface p-4 transition-shadow hover:shadow-sm"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <LogoImage name={client.name} src={client.logoUrl} />
-                    <div className="min-w-0 truncate font-medium text-text">{client.name}</div>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <LogoImage name={client.name} src={client.logoUrl} />
+                  <div className="min-w-0 flex-1 truncate font-medium text-text">{client.name}</div>
+                  <div className="shrink-0 text-lg font-bold text-text">{formatINR(totals.expected)}</div>
+                </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <div className="text-lg font-bold text-text">{formatINR(totals.expected)}</div>
-                    <div className="flex gap-1.5">
-                      {(["PAID", "UNPAID"] as const).map((s) => {
-                        const active = (totals.status === "PAID" ? "PAID" : "UNPAID") === s;
-                        const disabled =
-                          !singleMonth || client.categories.length === 0 || savingClientId === client.id;
-                        return (
-                          <button
-                            key={s}
-                            type="button"
-                            disabled={disabled}
-                            title={!singleMonth ? "Switch to a single month to edit" : undefined}
-                            onClick={() => setClientStatus(client, s)}
-                            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                              active
-                                ? s === "PAID"
-                                  ? "bg-paid-bg text-paid"
-                                  : "bg-unpaid-bg text-unpaid"
-                                : "border border-border text-text-muted hover:bg-surface-hover"
-                            } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
-                          >
-                            {s === "PAID" ? "Paid" : "Unpaid"}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                <div className="mt-3 flex items-center gap-1.5">
+                  {(["PAID", "UNPAID"] as const).map((s) => {
+                    const active = (totals.status === "PAID" ? "PAID" : "UNPAID") === s;
+                    const disabled = !singleMonth || client.categories.length === 0 || savingClientId === client.id;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        disabled={disabled}
+                        title={!singleMonth ? "Switch to a single month to edit" : undefined}
+                        onClick={() => setClientStatus(client, s)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                          active
+                            ? s === "PAID"
+                              ? "bg-paid-bg text-paid"
+                              : "bg-unpaid-bg text-unpaid"
+                            : "border border-border text-text-muted hover:bg-surface-hover"
+                        } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                      >
+                        {s === "PAID" ? "Paid" : "Unpaid"}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
