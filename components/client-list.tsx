@@ -3,12 +3,10 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogoImage } from "./logo-image";
-import { StatusPill } from "./status-pill";
-import { PaymentEditor } from "./payment-editor";
 import { AddServiceModal } from "./add-service-modal";
-import { aggregateClient, aggregateClientCategory } from "@/lib/aggregate";
+import { aggregateClient } from "@/lib/aggregate";
 import { formatINR } from "@/lib/currency";
-import type { Category, Client, Payment } from "@/lib/types";
+import type { Category, Client } from "@/lib/types";
 import type { Period } from "@/lib/types";
 
 type SortKey = "name" | "amount" | "status";
@@ -27,14 +25,32 @@ export function ClientList({
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [addServiceFor, setAddServiceFor] = useState<Client | null>(null);
-  const [editing, setEditing] = useState<{
-    clientCategoryId: string;
-    label: string;
-    monthlyAmount: number;
-    payment?: Payment;
-  } | null>(null);
+  const [savingClientId, setSavingClientId] = useState<string | null>(null);
 
   const singleMonth = period.months.length === 1;
+
+  async function setClientStatus(client: Client, status: "PAID" | "UNPAID") {
+    if (!singleMonth || client.categories.length === 0) return;
+    setSavingClientId(client.id);
+    const { year, month } = period.months[0];
+    await Promise.all(
+      client.categories.map((cc) =>
+        fetch("/api/payments", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientCategoryId: cc.id,
+            year,
+            month,
+            status,
+            amountPaid: status === "PAID" ? Number(cc.monthlyAmount) : 0,
+          }),
+        })
+      )
+    );
+    setSavingClientId(null);
+    onChanged();
+  }
 
   const rows = useMemo(() => {
     const filtered = clients.filter((c) => c.name.toLowerCase().includes(query.trim().toLowerCase()));
@@ -96,43 +112,45 @@ export function ClientList({
                     <div className="min-w-0 truncate font-medium text-text">{client.name}</div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-3 sm:justify-end">
-                    <div className="text-right">
-                      <div className="text-sm font-semibold text-text">{formatINR(totals.collected)}</div>
-                      <div className="text-xs text-text-muted">of {formatINR(totals.expected)}</div>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <div className="text-lg font-bold text-text">{formatINR(totals.expected)}</div>
+                    <div className="flex gap-1.5">
+                      {(["PAID", "UNPAID"] as const).map((s) => {
+                        const active = (totals.status === "PAID" ? "PAID" : "UNPAID") === s;
+                        const disabled =
+                          !singleMonth || client.categories.length === 0 || savingClientId === client.id;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            disabled={disabled}
+                            title={!singleMonth ? "Switch to a single month to edit" : undefined}
+                            onClick={() => setClientStatus(client, s)}
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                              active
+                                ? s === "PAID"
+                                  ? "bg-paid-bg text-paid"
+                                  : "bg-unpaid-bg text-unpaid"
+                                : "border border-border text-text-muted hover:bg-surface-hover"
+                            } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                          >
+                            {s === "PAID" ? "Paid" : "Unpaid"}
+                          </button>
+                        );
+                      })}
                     </div>
-                    <StatusPill status={totals.status} />
                   </div>
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                  {client.categories.map((cc) => {
-                    const line = aggregateClientCategory(cc, period);
-                    const payment = cc.payments.find(
-                      (p) => p.year === period.months[0].year && p.month === period.months[0].month
-                    );
-                    return (
-                      <div key={cc.id} className="flex items-center gap-1.5">
-                        <span className="text-xs text-text-muted">{cc.category.name}</span>
-                        <StatusPill
-                          status={line.status}
-                          disabled={!singleMonth}
-                          title={singleMonth ? undefined : "Switch to a single month to edit"}
-                          onClick={
-                            singleMonth
-                              ? () =>
-                                  setEditing({
-                                    clientCategoryId: cc.id,
-                                    label: `${client.name} · ${cc.category.name}`,
-                                    monthlyAmount: Number(cc.monthlyAmount),
-                                    payment,
-                                  })
-                              : undefined
-                          }
-                        />
-                      </div>
-                    );
-                  })}
+                  {client.categories.map((cc) => (
+                    <span
+                      key={cc.id}
+                      className="rounded-full border border-border px-2.5 py-1 text-xs text-text-muted"
+                    >
+                      {cc.category.name}
+                    </span>
+                  ))}
                   <button
                     type="button"
                     onClick={() => setAddServiceFor(client)}
@@ -146,22 +164,6 @@ export function ClientList({
           })}
         </AnimatePresence>
       </motion.div>
-
-      {editing && (
-        <PaymentEditor
-          open
-          onClose={() => setEditing(null)}
-          scope="main"
-          targetId={editing.clientCategoryId}
-          targetLabel={editing.label}
-          monthlyAmount={editing.monthlyAmount}
-          year={period.months[0].year}
-          month={period.months[0].month}
-          monthLabel={period.label}
-          initialPayment={editing.payment}
-          onSaved={onChanged}
-        />
-      )}
 
       {addServiceFor && (
         <AddServiceModal

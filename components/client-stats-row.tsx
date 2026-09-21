@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { formatINR } from "@/lib/currency";
-import type { PaymentStatus } from "@/lib/types";
 
 const container = {
   hidden: {},
@@ -19,21 +18,11 @@ export function ClientStatsRow({
   totalCollected,
   totalPending,
   totalClients,
-  paidCount,
-  unpaidCount,
-  partialCount,
-  statusFilter,
-  onStatusFilterChange,
 }: {
   totalExpected: number;
   totalCollected: number;
   totalPending: number;
   totalClients: number;
-  paidCount: number;
-  unpaidCount: number;
-  partialCount: number;
-  statusFilter: PaymentStatus | null;
-  onStatusFilterChange: (status: PaymentStatus | null) => void;
 }) {
   const cards = [
     { label: "Expected", value: formatINR(totalExpected), accent: "text-text" },
@@ -54,71 +43,6 @@ export function ClientStatsRow({
           <div className={`mt-1 text-xl font-semibold ${c.accent}`}>{c.value}</div>
         </motion.div>
       ))}
-
-      <motion.div variants={item} className="col-span-2 grid grid-cols-3 gap-3 sm:col-span-4">
-        <StatusFilterCard
-          label="Paid"
-          count={paidCount}
-          status="PAID"
-          active={statusFilter === "PAID"}
-          onClick={() => onStatusFilterChange(statusFilter === "PAID" ? null : "PAID")}
-        />
-        <StatusFilterCard
-          label="Partial"
-          count={partialCount}
-          status="PARTIAL"
-          active={statusFilter === "PARTIAL"}
-          onClick={() => onStatusFilterChange(statusFilter === "PARTIAL" ? null : "PARTIAL")}
-        />
-        <StatusFilterCard
-          label="Unpaid"
-          count={unpaidCount}
-          status="UNPAID"
-          active={statusFilter === "UNPAID"}
-          onClick={() => onStatusFilterChange(statusFilter === "UNPAID" ? null : "UNPAID")}
-        />
-      </motion.div>
     </motion.div>
-  );
-}
-
-const statusStyles: Record<PaymentStatus, { text: string; bg: string; ring: string; dot: string }> = {
-  PAID: { text: "text-paid", bg: "bg-paid-bg", ring: "ring-paid", dot: "bg-paid" },
-  PARTIAL: { text: "text-partial", bg: "bg-partial-bg", ring: "ring-partial", dot: "bg-partial" },
-  UNPAID: { text: "text-unpaid", bg: "bg-unpaid-bg", ring: "ring-unpaid", dot: "bg-unpaid" },
-};
-
-function StatusFilterCard({
-  label,
-  count,
-  status,
-  active,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  status: PaymentStatus;
-  active: boolean;
-  onClick: () => void;
-}) {
-  const s = statusStyles[status];
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      aria-pressed={active}
-      title={active ? `Clear ${label.toLowerCase()} filter` : `Show ${label.toLowerCase()} clients`}
-      className={`flex items-center justify-between rounded-xl border p-4 text-left transition-colors ${
-        active ? `${s.bg} border-transparent ring-2 ${s.ring}` : "border-border bg-surface hover:bg-surface-hover"
-      }`}
-    >
-      <div className="flex items-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${s.dot}`} />
-        <span className="text-sm text-text-muted">{label}</span>
-      </div>
-      <span className={`text-lg font-semibold ${s.text}`}>{count}</span>
-    </motion.button>
   );
 }

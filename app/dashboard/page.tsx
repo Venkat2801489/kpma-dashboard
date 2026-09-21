@@ -11,9 +11,9 @@ import { CategoryChips } from "@/components/category-chips";
 import { ClientList } from "@/components/client-list";
 import { AddClientModal } from "@/components/add-client-modal";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
-import { aggregateClient, computeStats } from "@/lib/aggregate";
+import { computeStats } from "@/lib/aggregate";
 import { currentYearMonth } from "@/lib/period";
-import type { Category, Client, Period, PaymentStatus } from "@/lib/types";
+import type { Category, Client, Period } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -23,7 +23,6 @@ export default function DashboardPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<PaymentStatus | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,16 +68,7 @@ export default function DashboardPage() {
 
   const stats = period ? computeStats(categoryFiltered, period) : null;
 
-  const clientTotals = period
-    ? categoryFiltered.map((client) => ({ client, totals: aggregateClient(client, period) }))
-    : [];
-  const paidCount = clientTotals.filter((c) => c.totals.status === "PAID").length;
-  const partialCount = clientTotals.filter((c) => c.totals.status === "PARTIAL").length;
-  const unpaidCount = clientTotals.filter((c) => c.totals.status === "UNPAID").length;
-
-  const visibleClients = statusFilter
-    ? clientTotals.filter((c) => c.totals.status === statusFilter).map((c) => c.client)
-    : categoryFiltered;
+  const visibleClients = categoryFiltered;
 
   function handleChanged() {
     loadClients();
@@ -125,11 +115,6 @@ export default function DashboardPage() {
                 totalCollected={stats.totalCollected}
                 totalPending={stats.totalPending}
                 totalClients={categoryFiltered.length}
-                paidCount={paidCount}
-                unpaidCount={unpaidCount}
-                partialCount={partialCount}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
               />
             </div>
 
