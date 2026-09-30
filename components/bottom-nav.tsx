@@ -1,8 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { CategoryIcon } from "./category-icon";
-import type { Category } from "@/lib/types";
+
+export type BottomNavItem = { id: string; label: string; icon: ReactNode };
 
 function HomeIcon({ className }: { className?: string }) {
   return (
@@ -24,11 +25,11 @@ function HomeIcon({ className }: { className?: string }) {
 }
 
 export function BottomNav({
-  categories,
+  items,
   selected,
   onSelect,
 }: {
-  categories: Category[];
+  items: BottomNavItem[];
   selected: string | null;
   onSelect: (id: string | null) => void;
 }) {
@@ -57,13 +58,13 @@ export function BottomNav({
             Home
           </span>
         </button>
-        {categories.map((cat) => {
-          const active = selected === cat.id;
+        {items.map((item) => {
+          const active = selected === item.id;
           return (
             <button
-              key={cat.id}
+              key={item.id}
               type="button"
-              onClick={() => onSelect(active ? null : cat.id)}
+              onClick={() => onSelect(active ? null : item.id)}
               className={`relative flex min-w-[64px] flex-1 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-2 text-[11px] font-medium transition-colors ${
                 active ? "text-brand-fg" : "text-text-muted hover:bg-surface-hover"
               }`}
@@ -76,8 +77,8 @@ export function BottomNav({
                 />
               )}
               <span className="relative flex flex-col items-center gap-0.5">
-                <CategoryIcon icon={cat.icon} />
-                <span className="max-w-[76px] truncate">{cat.name}</span>
+                {item.icon}
+                <span className="max-w-[76px] truncate">{item.label}</span>
               </span>
             </button>
           );

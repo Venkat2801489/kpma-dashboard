@@ -13,7 +13,7 @@ function MenuIcon() {
   );
 }
 
-export function DashboardHeader({ subtitle }: { subtitle: string }) {
+export function DashboardHeader({ subtitle, scope = "main" }: { subtitle: string; scope?: "main" | "worker" }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -31,16 +31,16 @@ export function DashboardHeader({ subtitle }: { subtitle: string }) {
     await fetch("/api/auth/logout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scope: "main" }),
+      body: JSON.stringify({ scope }),
     });
-    router.push("/login");
+    router.push(scope === "main" ? "/login" : "/workers/login");
     router.refresh();
   }
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
+        <Link href={scope === "main" ? "/dashboard" : "/workers"} className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a0a0a] text-sm font-bold text-[#02afef] dark:bg-white/5">
             K
           </div>
@@ -65,20 +65,32 @@ export function DashboardHeader({ subtitle }: { subtitle: string }) {
 
             {menuOpen && (
               <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
-                <Link
-                  href="/dashboard/settings"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
-                >
-                  Manage categories
-                </Link>
-                <Link
-                  href="/workers"
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
-                >
-                  Worker dashboard
-                </Link>
+                {scope === "main" ? (
+                  <>
+                    <Link
+                      href="/dashboard/settings"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                    >
+                      Manage categories
+                    </Link>
+                    <Link
+                      href="/workers"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                    >
+                      Worker dashboard
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                  >
+                    Client dashboard
+                  </Link>
+                )}
                 <button
                   type="button"
                   onClick={logout}

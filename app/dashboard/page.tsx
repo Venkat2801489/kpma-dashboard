@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { BottomNav } from "@/components/bottom-nav";
+import { CategoryIcon } from "@/components/category-icon";
 import { MonthPicker, selectionToQuery, type PeriodSelection } from "@/components/month-picker";
 import { ClientStatsRow } from "@/components/client-stats-row";
 import { ClientList } from "@/components/client-list";
@@ -118,7 +119,11 @@ export default function DashboardPage() {
         </svg>
       </button>
 
-      <BottomNav categories={categories} selected={selectedCategory} onSelect={setSelectedCategory} />
+      <BottomNav
+        items={categories.map((cat) => ({ id: cat.id, label: cat.name, icon: <CategoryIcon icon={cat.icon} /> }))}
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
 
       <AddClientModal open={addOpen} onClose={() => setAddOpen(false)} categories={categories} onSaved={handleChanged} />
     </div>

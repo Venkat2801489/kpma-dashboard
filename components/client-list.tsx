@@ -110,22 +110,23 @@ export function ClientList({
                 exit={{ opacity: 0, y: -8 }}
                 whileTap={{ scale: 0.99 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className={`overflow-hidden rounded-xl border border-border bg-surface p-4 pl-3.5 shadow-sm transition-shadow hover:shadow-md ${
+                className={`overflow-hidden rounded-xl border border-border bg-surface p-3 pl-2.5 shadow-sm transition-shadow hover:shadow-md ${
                   isPaid ? "border-l-4 border-l-paid" : "border-l-4 border-l-unpaid"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <LogoImage name={client.name} src={client.logoUrl} />
+                {/* Layer 1: logo + name on the left, amount + edit on the right */}
+                <div className="flex items-center gap-2.5">
+                  <LogoImage name={client.name} src={client.logoUrl} size={36} />
                   <div className="min-w-0 flex-1 truncate font-medium text-text">{client.name}</div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <div className="text-lg font-bold text-text">{formatINR(totals.expected)}</div>
+                  <div className="flex shrink-0 items-center">
+                    <div className="text-base font-bold text-text">{formatINR(totals.expected)}</div>
                     <button
                       type="button"
                       onClick={() => setEditClientId(client.id)}
                       aria-label={`Edit ${client.name}`}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-faint transition-colors hover:bg-surface-hover hover:text-brand"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-faint transition-colors hover:bg-surface-hover hover:text-brand"
                     >
-                      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
                       </svg>
@@ -133,47 +134,50 @@ export function ClientList({
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-1.5">
-                  {(["PAID", "UNPAID"] as const).map((s) => {
-                    const active = (totals.status === "PAID" ? "PAID" : "UNPAID") === s;
-                    const disabled = !singleMonth || client.categories.length === 0 || savingClientId === client.id;
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        disabled={disabled}
-                        title={!singleMonth ? "Switch to a single month to edit" : undefined}
-                        onClick={() => setClientStatus(client, s)}
-                        className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-                          active
-                            ? s === "PAID"
-                              ? "bg-paid-bg text-paid ring-1 ring-inset ring-paid/30"
-                              : "bg-unpaid-bg text-unpaid ring-1 ring-inset ring-unpaid/30"
-                            : "border border-border text-text-muted hover:bg-surface-hover"
-                        } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                {/* Layer 2: services on the left, Paid/Unpaid under the amount */}
+                <div className="mt-2.5 flex items-center justify-between gap-2">
+                  <div className="no-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
+                    {client.categories.map((cc) => (
+                      <span
+                        key={cc.id}
+                        className="shrink-0 whitespace-nowrap rounded-full border border-border px-2 py-1 text-[11px] leading-none text-text-muted"
                       >
-                        {s === "PAID" ? "Paid" : "Unpaid"}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                  {client.categories.map((cc) => (
-                    <span
-                      key={cc.id}
-                      className="rounded-full border border-border px-2.5 py-1.5 text-xs text-text-muted"
+                        {cc.category.name}
+                      </span>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setAddServiceFor(client)}
+                      className="shrink-0 whitespace-nowrap rounded-full border border-dashed border-border px-2 py-1 text-[11px] leading-none text-text-faint hover:bg-surface-hover"
                     >
-                      {cc.category.name}
-                    </span>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setAddServiceFor(client)}
-                    className="rounded-full border border-dashed border-border px-2.5 py-1.5 text-xs text-text-faint hover:bg-surface-hover"
-                  >
-                    + service
-                  </button>
+                      + service
+                    </button>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    {(["PAID", "UNPAID"] as const).map((s) => {
+                      const active = (totals.status === "PAID" ? "PAID" : "UNPAID") === s;
+                      const disabled = !singleMonth || client.categories.length === 0 || savingClientId === client.id;
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          disabled={disabled}
+                          title={!singleMonth ? "Switch to a single month to edit" : undefined}
+                          onClick={() => setClientStatus(client, s)}
+                          className={`rounded-full border px-2.5 py-1 text-[11px] leading-none font-medium transition-all active:scale-95 ${
+                            active
+                              ? s === "PAID"
+                                ? "border-paid/30 bg-paid-bg text-paid"
+                                : "border-unpaid/30 bg-unpaid-bg text-unpaid"
+                              : "border-border text-text-muted hover:bg-surface-hover"
+                          } ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                        >
+                          {s === "PAID" ? "Paid" : "Unpaid"}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </motion.div>
             );

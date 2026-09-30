@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { TopBar } from "@/components/top-bar";
+import { DashboardHeader } from "@/components/dashboard-header";
+import { BottomNav, type BottomNavItem } from "@/components/bottom-nav";
 import { MonthPicker, selectionToQuery, type PeriodSelection } from "@/components/month-picker";
 import { WorkerStatsRow } from "@/components/worker-stats-row";
 import { WorkerList } from "@/components/worker-list";
@@ -12,6 +13,10 @@ import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 import { aggregateWorker, computePayrollStats } from "@/lib/aggregate";
 import { currentYearMonth } from "@/lib/period";
 import type { Period, PaymentStatus, Worker } from "@/lib/types";
+
+function StatusDot({ className }: { className: string }) {
+  return <span className={`block h-5 w-5 rounded-full border-[5px] border-current ${className}`} />;
+}
 
 export default function WorkersPage() {
   const router = useRouter();
@@ -59,13 +64,17 @@ export default function WorkersPage() {
     ? workerLines.filter((w) => w.line.status === statusFilter).map((w) => w.worker)
     : workers;
 
+  const statusItems: BottomNavItem[] = [
+    { id: "PAID", label: `Paid · ${paidCount}`, icon: <StatusDot className="text-paid" /> },
+    { id: "PARTIAL", label: `Partial · ${partialCount}`, icon: <StatusDot className="text-partial" /> },
+    { id: "UNPAID", label: `Unpaid · ${unpaidCount}`, icon: <StatusDot className="text-unpaid" /> },
+  ];
+
   return (
     <div className="min-h-screen">
-      <TopBar scope="worker" subtitle="Worker payroll dashboard" workerLink={false}>
-        <MonthPicker value={selection} onChange={setSelection} />
-      </TopBar>
+      <DashboardHeader scope="worker" subtitle="Worker payroll dashboard" />
 
-      <main className="mx-auto max-w-4xl px-4 py-6">
+      <main className="mx-auto max-w-6xl px-4 py-4 pb-28">
         {error ? (
           <div className="rounded-xl border border-unpaid/40 bg-unpaid-bg p-4 text-sm text-unpaid">
             <p className="font-medium">Couldn&rsquo;t load the payroll dashboard.</p>
@@ -75,15 +84,9 @@ export default function WorkersPage() {
           <DashboardSkeleton showCategoryChips={false} />
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h1 className="text-lg font-semibold text-text">{period.label}</h1>
-              <button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                className="rounded-lg bg-brand px-3 py-1.5 text-sm font-medium text-brand-fg"
-              >
-                + Add worker
-              </button>
+              <MonthPicker value={selection} onChange={setSelection} />
             </div>
 
             <div className="mb-6">
@@ -92,11 +95,6 @@ export default function WorkersPage() {
                 totalCollected={stats.totalCollected}
                 totalPending={stats.totalPending}
                 totalWorkers={workers.length}
-                paidCount={paidCount}
-                unpaidCount={unpaidCount}
-                partialCount={partialCount}
-                statusFilter={statusFilter}
-                onStatusFilterChange={setStatusFilter}
               />
             </div>
 
@@ -104,6 +102,24 @@ export default function WorkersPage() {
           </motion.div>
         )}
       </main>
+
+      <button
+        type="button"
+        onClick={() => setAddOpen(true)}
+        aria-label="Add worker"
+        className="bg-gradient-brand fixed right-4 bottom-20 z-40 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-[var(--shadow-brand)] transition-transform active:scale-90"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+
+      <BottomNav
+        items={statusItems}
+        selected={statusFilter}
+        onSelect={(id) => setStatusFilter(id as PaymentStatus | null)}
+      />
 
       <AddWorkerModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={load} />
     </div>
