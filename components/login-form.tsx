@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 export function LoginForm({
   scope,
@@ -14,7 +13,6 @@ export function LoginForm({
   subtitle: string;
   redirectTo: string;
 }) {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +27,16 @@ export function LoginForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scope, username, password }),
     });
-    setLoading(false);
     if (!res.ok) {
+      setLoading(false);
       const body = await res.json().catch(() => ({}));
       setError(body.error ?? "Invalid username or password.");
       return;
     }
-    router.push(redirectTo);
-    router.refresh();
+    // Full page load, not router.push: the client router may still hold a
+    // prefetched "not logged in → redirect to login" response for this page
+    // (e.g. from the menu link), which would bounce us straight back here.
+    window.location.assign(redirectTo);
   }
 
   return (
