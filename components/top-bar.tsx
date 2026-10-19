@@ -53,6 +53,14 @@ export function TopBar({
               Worker Dashboard →
             </Link>
           )}
+          {scope === "main" && workerLink && (
+            <Link
+              href="/notetaker"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-muted hover:bg-surface-hover"
+            >
+              Notetaker Dashboard →
+            </Link>
+          )}
           <ThemeToggle />
           <button
             type="button"

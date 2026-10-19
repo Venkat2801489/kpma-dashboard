@@ -103,3 +103,22 @@ model SalaryPayment {
   @@unique([workerId, year, month])
   @@map("salary_payments")
 }
+
+enum ExpenseKind {
+  EQUIPMENT
+  EXPENSE
+}
+
+model Expense {
+  id        String      @id @default(cuid())
+  title     String
+  kind      ExpenseKind @default(EXPENSE)
+  amount    Decimal     @db.Decimal(12, 2)
+  spentOn   DateTime    @db.Date
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([spentOn])
+  @@map("expenses")
+}

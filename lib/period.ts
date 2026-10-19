@@ -101,3 +101,13 @@ export function trailingMonths(year: number, month: number, count: number): Year
   }
   return result;
 }
+
+/** UTC date bounds covering a whole period — `gte` first day, `lt` the day after the last month ends. */
+export function periodDateRange(period: Period): { gte: Date; lt: Date } {
+  const first = period.months[0];
+  const last = period.months[period.months.length - 1];
+  return {
+    gte: new Date(Date.UTC(first.year, first.month - 1, 1)),
+    lt: new Date(Date.UTC(last.year, last.month, 1)),
+  };
+}

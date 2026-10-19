@@ -67,3 +67,15 @@ export type PaymentLike = {
 
 export type YearMonth = { year: number; month: number };
 export type Period = { months: YearMonth[]; label: string };
+
+export type ExpenseKind = "EQUIPMENT" | "EXPENSE";
+
+export type Expense = {
+  id: string;
+  title: string;
+  kind: ExpenseKind;
+  amount: string;
+  spentOn: string;
+  notes: string | null;
+  createdAt: string;
+};

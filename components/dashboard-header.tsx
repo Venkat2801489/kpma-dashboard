@@ -13,7 +13,15 @@ function MenuIcon() {
   );
 }
 
-export function DashboardHeader({ subtitle, scope = "main" }: { subtitle: string; scope?: "main" | "worker" }) {
+const HOME_BY_SCOPE = { main: "/dashboard", worker: "/workers", notetaker: "/notetaker" } as const;
+
+export function DashboardHeader({
+  subtitle,
+  scope = "main",
+}: {
+  subtitle: string;
+  scope?: "main" | "worker" | "notetaker";
+}) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -40,7 +48,7 @@ export function DashboardHeader({ subtitle, scope = "main" }: { subtitle: string
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-bg/95 backdrop-blur supports-[backdrop-filter]:bg-bg/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href={scope === "main" ? "/dashboard" : "/workers"} className="flex min-w-0 items-center gap-2">
+        <Link href={HOME_BY_SCOPE[scope]} className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0a0a0a] text-sm font-bold text-[#02afef] dark:bg-white/5">
             K
           </div>
@@ -81,23 +89,51 @@ export function DashboardHeader({ subtitle, scope = "main" }: { subtitle: string
                     >
                       Worker dashboard
                     </Link>
+                    <Link
+                      href="/notetaker"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                    >
+                      Notetaker dashboard
+                    </Link>
                   </>
                 ) : (
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
-                  >
-                    Client dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                    >
+                      Client dashboard
+                    </Link>
+                    {scope === "worker" ? (
+                      <Link
+                        href="/notetaker"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                      >
+                        Notetaker dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/workers"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-4 py-3 text-sm text-text hover:bg-surface-hover"
+                      >
+                        Worker dashboard
+                      </Link>
+                    )}
+                  </>
                 )}
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="block w-full px-4 py-3 text-left text-sm text-unpaid hover:bg-surface-hover"
-                >
-                  Log out
-                </button>
+                {scope !== "notetaker" && (
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="block w-full px-4 py-3 text-left text-sm text-unpaid hover:bg-surface-hover"
+                  >
+                    Log out
+                  </button>
+                )}
               </div>
             )}
           </div>

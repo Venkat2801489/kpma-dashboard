@@ -56,7 +56,8 @@ Vercel with a Neon Postgres database.
 
    Visit `http://localhost:3000` — it redirects to `/login` for the main
    dashboard. The worker/payroll dashboard lives at `/workers` with its own
-   `/workers/login`.
+   `/workers/login`. The notetaker dashboard (equipment and running
+   expenses per month) lives at `/notetaker` and needs no login.
 
 ## Deploying to Vercel
 
