@@ -102,6 +102,29 @@ export function trailingMonths(year: number, month: number, count: number): Year
   return result;
 }
 
+/** UTC midnight on the 1st of a month — how `removedFrom` cutoffs are stored. */
+export function monthStartDate({ year, month }: YearMonth): Date {
+  return new Date(Date.UTC(year, month - 1, 1));
+}
+
+/**
+ * Prisma filter for entries still visible in a period: never removed, or
+ * removed only after the period's first month (earlier months keep them).
+ */
+export function activeInPeriodWhere(period: Period) {
+  return { OR: [{ removedFrom: null }, { removedFrom: { gt: monthStartDate(period.months[0]) } }] };
+}
+
+/** Whether an entry with this `removedFrom` cutoff still shows in a month. */
+export function isActiveIn(ym: YearMonth, removedFrom: string | Date | null): boolean {
+  return !removedFrom || monthKey(ym) < new Date(removedFrom).toISOString().slice(0, 7);
+}
+
+/** The months of a period an entry was still active in, given its `removedFrom` cutoff. */
+export function activeMonths(period: Period, removedFrom: string | Date | null): YearMonth[] {
+  return period.months.filter((ym) => isActiveIn(ym, removedFrom));
+}
+
 /** UTC date bounds covering a whole period — `gte` first day, `lt` the day after the last month ends. */
 export function periodDateRange(period: Period): { gte: Date; lt: Date } {
   const first = period.months[0];

@@ -34,6 +34,8 @@ export type Client = {
   logoDriveLink: string | null;
   logoUrl: string | null;
   notes: string | null;
+  /** ISO date of the first month the client is removed from, or null while active. */
+  removedFrom: string | null;
   createdAt: string;
   categories: ClientCategory[];
 };
@@ -54,6 +56,8 @@ export type Worker = {
   name: string;
   role: string | null;
   monthlySalary: string;
+  /** ISO date of the first month the worker is removed from, or null while active. */
+  removedFrom: string | null;
   createdAt: string;
   payments: SalaryPayment[];
 };

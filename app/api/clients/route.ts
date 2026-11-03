@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { hasValidSession } from "@/lib/auth";
-import { periodFromSearchParams } from "@/lib/period";
+import { activeInPeriodWhere, periodFromSearchParams } from "@/lib/period";
 import { resolveLogoUrl } from "@/lib/drive-logo";
 
 export async function GET(request: NextRequest) {
@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   const monthFilter = period.months.map((m) => ({ year: m.year, month: m.month }));
 
   const clients = await prisma.client.findMany({
+    where: activeInPeriodWhere(period),
     orderBy: { name: "asc" },
     include: {
       categories: {

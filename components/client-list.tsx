@@ -56,6 +56,20 @@ export function ClientList({
     onChanged();
   }
 
+  async function removeClient(client: Client) {
+    if (!singleMonth) return;
+    if (!window.confirm(`Remove “${client.name}” from ${period.label} onward? Earlier months keep this client and its payments.`)) return;
+    setSavingClientId(client.id);
+    const { year, month } = period.months[0];
+    const res = await fetch(`/api/clients/${client.id}?year=${year}&month=${month}`, { method: "DELETE" });
+    setSavingClientId(null);
+    if (!res.ok) {
+      window.alert("Could not remove that client — try again.");
+      return;
+    }
+    onChanged();
+  }
+
   const rows = useMemo(() => {
     const filtered = clients.filter((c) => c.name.toLowerCase().includes(query.trim().toLowerCase()));
     const withTotals = filtered.map((client) => ({ client, totals: aggregateClient(client, period) }));
@@ -129,6 +143,18 @@ export function ClientList({
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeClient(client)}
+                      disabled={!singleMonth || savingClientId === client.id}
+                      title={singleMonth ? `Remove from ${period.label} onward` : "Switch to a single month to remove"}
+                      aria-label={`Remove ${client.name} from ${period.label}`}
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-text-faint transition-colors hover:bg-unpaid-bg hover:text-unpaid disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m2 0-1 13a2 2 0 01-2 2H8a2 2 0 01-2-2L5 7" />
                       </svg>
                     </button>
                   </div>

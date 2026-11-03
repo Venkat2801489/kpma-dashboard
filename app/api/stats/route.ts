@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hasValidSession } from "@/lib/auth";
-import { currentYearMonth, trailingMonths, MONTH_NAMES } from "@/lib/period";
+import { currentYearMonth, isActiveIn, trailingMonths, MONTH_NAMES } from "@/lib/period";
 
 export async function GET(request: NextRequest) {
   if (!(await hasValidSession(request, "main"))) {
@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
     let expected = 0;
     let collected = 0;
     for (const client of clients) {
+      if (!isActiveIn(ym, client.removedFrom)) continue;
       for (const cc of client.categories) {
         expected += Number(cc.monthlyAmount);
         const payment = cc.payments.find((p) => p.year === ym.year && p.month === ym.month);
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   const currentMonthFilter = { year, month };
   const byCategory = new Map<string, { name: string; icon: string; expected: number; collected: number }>();
   for (const client of clients) {
+    if (!isActiveIn(currentMonthFilter, client.removedFrom)) continue;
     for (const cc of client.categories) {
       const entry = byCategory.get(cc.categoryId) ?? {
         name: cc.category.name,

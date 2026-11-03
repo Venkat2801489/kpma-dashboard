@@ -1,3 +1,4 @@
+import { activeMonths } from "./period";
 import type { Client, ClientCategory, Payment, PaymentStatus, Period, SalaryPayment, Worker, YearMonth } from "./types";
 
 export type LineStatus = {
@@ -16,16 +17,18 @@ function paymentFor(cc: ClientCategory, ym: YearMonth): Payment | undefined {
  * triple. For a single month this just reflects the stored payment record;
  * for a range it sums amounts and folds the per-month statuses together
  * (all paid -> paid, none paid -> unpaid, anything else -> partial).
+ * `months` is the period's months the client was active in — a removed
+ * client isn't billed for months from its removal onward.
  */
-export function aggregateClientCategory(cc: ClientCategory, period: Period): LineStatus {
+export function aggregateClientCategory(cc: ClientCategory, months: YearMonth[]): LineStatus {
   const monthlyAmount = Number(cc.monthlyAmount);
-  const expected = monthlyAmount * period.months.length;
+  const expected = monthlyAmount * months.length;
 
   let collected = 0;
   let paidCount = 0;
   let unpaidCount = 0;
 
-  for (const ym of period.months) {
+  for (const ym of months) {
     const payment = paymentFor(cc, ym);
     const amount = payment ? Number(payment.amountPaid) : 0;
     collected += amount;
@@ -35,8 +38,8 @@ export function aggregateClientCategory(cc: ClientCategory, period: Period): Lin
   }
 
   let status: PaymentStatus;
-  if (paidCount === period.months.length) status = "PAID";
-  else if (unpaidCount === period.months.length) status = "UNPAID";
+  if (paidCount === months.length) status = "PAID";
+  else if (unpaidCount === months.length) status = "UNPAID";
   else status = "PARTIAL";
 
   return { expected, collected, status };
@@ -63,7 +66,8 @@ function rollUpStatus(lines: LineStatus[]): PaymentStatus {
 }
 
 export function aggregateClient(client: Client, period: Period): ClientTotals {
-  const lines = client.categories.map((cc) => ({ clientCategory: cc, line: aggregateClientCategory(cc, period) }));
+  const months = activeMonths(period, client.removedFrom);
+  const lines = client.categories.map((cc) => ({ clientCategory: cc, line: aggregateClientCategory(cc, months) }));
   const expected = lines.reduce((sum, l) => sum + l.line.expected, 0);
   const collected = lines.reduce((sum, l) => sum + l.line.collected, 0);
   const status = rollUpStatus(lines.map((l) => l.line));
@@ -71,14 +75,15 @@ export function aggregateClient(client: Client, period: Period): ClientTotals {
 }
 
 export function aggregateWorker(worker: Worker, period: Period): LineStatus {
+  const months = activeMonths(period, worker.removedFrom);
   const monthlyAmount = Number(worker.monthlySalary);
-  const expected = monthlyAmount * period.months.length;
+  const expected = monthlyAmount * months.length;
 
   let collected = 0;
   let paidCount = 0;
   let unpaidCount = 0;
 
-  for (const ym of period.months) {
+  for (const ym of months) {
     const payment: SalaryPayment | undefined = worker.payments.find(
       (p) => p.year === ym.year && p.month === ym.month
     );
@@ -89,8 +94,8 @@ export function aggregateWorker(worker: Worker, period: Period): LineStatus {
   }
 
   let status: PaymentStatus;
-  if (paidCount === period.months.length) status = "PAID";
-  else if (unpaidCount === period.months.length) status = "UNPAID";
+  if (paidCount === months.length) status = "PAID";
+  else if (unpaidCount === months.length) status = "UNPAID";
   else status = "PARTIAL";
 
   return { expected, collected, status };
@@ -136,8 +141,9 @@ export function computeStats(clients: Client[], period: Period): DashboardStats 
   let partialCount = 0;
 
   for (const client of clients) {
+    const months = activeMonths(period, client.removedFrom);
     for (const cc of client.categories) {
-      const line = aggregateClientCategory(cc, period);
+      const line = aggregateClientCategory(cc, months);
       totalExpected += line.expected;
       totalCollected += line.collected;
       if (line.status === "PAID") paidCount++;

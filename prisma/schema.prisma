@@ -31,6 +31,8 @@ model Client {
   logoDriveLink String?
   logoUrl       String?
   notes         String?
+  /// First month (stored as its 1st day) the client no longer appears in; earlier months keep their entries.
+  removedFrom   DateTime? @db.Date
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -78,6 +80,8 @@ model Worker {
   role          String?
   monthlySalary Decimal  @db.Decimal(12, 2)
   notes         String?
+  /// First month (stored as its 1st day) the worker no longer appears in; earlier months keep their entries.
+  removedFrom   DateTime? @db.Date
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
